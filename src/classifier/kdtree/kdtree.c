@@ -120,12 +120,12 @@ void Print_KDTree(KDTree* kd){
 KDTree* kd_init_aux(Data* train, int eje){
   // Creo una estructura KDTree
   KDTree* kd = malloc(sizeof(KDTree));
-  //(1)kd->vectores = malloc(sizeof(Data));
-  //(1)kd->vectores->vectors = malloc(sizeof(Vector*) * train -> count);
+  kd->vectores = malloc(sizeof(Data));
+  kd->vectores->vectors = malloc(sizeof(Vector*) * train -> count);
 
   // Agrego atributos a kd
-  //(1)kd -> vectores -> vectors = train -> vectors;
-  //(1)kd -> vectores -> count = train -> count;
+  kd -> vectores -> vectors = train -> vectors;
+  kd -> vectores -> count = train -> count;
   kd -> eje = eje;
 
   // Guardar el minimo y maximo
@@ -181,11 +181,6 @@ KDTree* kd_init_aux(Data* train, int eje){
 
   // Si kd -> contador_vect <= 5 llegamos a la hoja
   if(train -> count <= 5){
-    // (-1) --------------------------------------------------------------------------
-    kd->vectores = malloc(sizeof(Data));
-    kd->vectores->vectors = malloc(sizeof(Vector*) * train -> count);
-    kd -> vectores -> vectors = train -> vectors;
-    kd -> vectores -> count = train -> count;
     return kd;
 
   }
@@ -239,9 +234,9 @@ KDTree* kd_init_aux(Data* train, int eje){
   }
 
   // Actualizamos el count de los Data
-
   data_arriba_izq -> count = ai_idx;
   data_abajo_der -> count = ad_idx;
+
 
   // Creamos los KDTrees hijos
   kd -> arriba_izq = kd_init_aux(data_arriba_izq, kd -> eje);
@@ -336,9 +331,8 @@ void kd_destroy(KDTree* kd)
   if(kd->abajo_der){
     kd_destroy(kd->abajo_der);
   }
-  if(kd->vectores){
-    free(kd->vectores->vectors);
-    free(kd->vectores);
-  }
+
+  free(kd->vectores->vectors);
+  free(kd->vectores);
   free(kd);
 }

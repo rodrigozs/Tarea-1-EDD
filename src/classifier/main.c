@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
   int correct = 0;
   int incorrect = 0;
 
+  //
+
   // Arreglo de vecinos mas cercanos
   Vector** neighbours = malloc(sizeof(Vector*) * k);
   // Itero por los vectores a clasificar
