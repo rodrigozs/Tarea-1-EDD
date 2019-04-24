@@ -7,9 +7,13 @@ typedef struct kdtree
 {
     // Aca agrega los atributos que quieras para tu KD-Tree
     // eje es 0 si divide en el eje X y 1 si divide en el eje Y
-    int eje = 1;
-    kdtree* arriba_izq = NULL;
-    kdtree* abajo_der = NULL;
+    int eje;
+    struct kdtree* arriba_izq;
+    struct kdtree* abajo_der;
+    double min_x;
+    double min_y;
+    double max_x;
+    double max_y;
     Data* vectores;
 
 } KDTree;

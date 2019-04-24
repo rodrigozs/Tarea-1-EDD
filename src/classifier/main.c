@@ -44,6 +44,9 @@ int main(int argc, char *argv[])
   // Inicializo el kdtree
   KDTree* kd = kd_init(train_data);
 
+  // PRINTS
+  //Print_KDTree(kd);
+
   // Numero de correctos y de incorrectos
   int correct = 0;
   int incorrect = 0;

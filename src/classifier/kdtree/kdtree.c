@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include "kdtree.h"
 
 /*
@@ -59,62 +60,194 @@ bool collision(double cx, double cy, double r, double mx, double my, double Mx, 
   return false;
 }
 
-int* Particion(Data* vectores, int i, int f, int eje){
+int cmpfunc(const void * a, const void * b){
+  double num1 = *(double*)a;
+  double num2 = *(double*)b;
 
-    int low_idx = 0;
-    int high_idx = 0;
-    Vector lows[f-i];
-    Vector highs[f-i];
+  if(num1 < num2){
+    return -1;
+  }
+  else if(num1==num2){
+    return 0;
+  }
+  return 1;
+}
 
-    double p = vectores -> vectors[0] -> pos[eje];
+double Mediana(Data* vectores, int eje){
 
-    // Separo en Menores Iguales a p y Mayores a p
-    for(int k = i; k <= f; k++){
-        if(vectores -> vectors[k] -> pos[eje] <= p){
-            lows[low_idx] = vectores -> vectors[k];
-            low_idx = low_idx + 1;
-        }
-        else{
-            highs[high_idx] = vectores -> vectors[k];
-            high_idx = high_idx + 1;
-        }
+    // Creo arreglo de datos
+    double datos[vectores->count];
+
+    for(int k= 0; k < vectores -> count; k++){
+        datos[k] = vectores->vectors[k]->pos[eje];
     }
+    
+    // Ordeno con QuickSort
+    qsort(datos, vectores->count, sizeof(double), cmpfunc);
 
-    // Ordeno lista vectores
-    for(k = 0; k < low_idx; k++){
-        vectores -> vectors[k] = lows[k];
-    }
-    for(k = 0; k < high_idx; k++){
-        vectores -> vectors[k] = highs[k];
-    }
-
-    return i + low_idx;
+    // Saco la mediana
+    return datos[((vectores->count) -1 )/2];
 
 }
 
-Vector Mediana(Data* vectores, int eje){
-    int n = vectores -> count;
-    int i = 0;
-    int f = n-1;
-    int* x = malloc(sizeof(int));
-    int result;
+void Print_KDTree(KDTree* kd){
+  printf("count: %d\n",kd->vectores->count);
+  printf("eje: %d\n", kd->eje);
+  printf("min_x: %f - max_x: %f\n",kd->min_x, kd->max_x);
+  printf("min_y: %f - max_y: %f\n",kd->min_y, kd->max_y);
 
-    &x = Particion(vectores, i, f, eje);
-
-    while(! &x == (n-1)/2 ){
-        if(&x < (n-1)/2){
-            i = &x + 1;
-        }
-        else{
-            f = &x - 1;
-        }
-        &x = Particion(vectores, i, f, eje);
+  if(kd->vectores){
+    printf("[");
+    for(int k=0; k < kd->vectores->count; k++){
+      printf("(%f, %f), ",kd->vectores->vectors[k]->pos[0], kd->vectores->vectors[k]->pos[1]);
     }
+    printf("]\n");
+    printf("\n");
+  }
+  
+  if(kd->arriba_izq){
+    printf("\nRama Izquierda\n");
+    Print_KDTree(kd->arriba_izq);
+  }
 
-    result = x;
-    free(x);
+  if(kd->abajo_der){
+    printf("\nRama Derecha\n");
+    Print_KDTree(kd->abajo_der);
+  }
+}
 
-    return vectores -> vectors[result] -> pos[eje];
+
+KDTree* kd_init_aux(Data* train, int eje){
+  // Creo una estructura KDTree
+  KDTree* kd = malloc(sizeof(KDTree));
+  //(1)kd->vectores = malloc(sizeof(Data));
+  //(1)kd->vectores->vectors = malloc(sizeof(Vector*) * train -> count);
+
+  // Agrego atributos a kd
+  //(1)kd -> vectores -> vectors = train -> vectors;
+  //(1)kd -> vectores -> count = train -> count;
+  kd -> eje = eje;
+
+  // Guardar el minimo y maximo
+  //(1)double min_eje_x = kd->vectores->vectors[0]->pos[0];
+  //(1)double max_eje_x = kd->vectores->vectors[0]->pos[0];
+  //(1)double min_eje_y = kd->vectores->vectors[0]->pos[1];
+  //(1)double max_eje_y = kd->vectores->vectors[0]->pos[1];
+
+  double min_eje_x = train->vectors[0]->pos[0];
+  double max_eje_x = train->vectors[0]->pos[0];
+  double min_eje_y = train->vectors[0]->pos[1];
+  double max_eje_y = train->vectors[0]->pos[1];
+
+  // En X
+  for(int k = 0; k < train->count; k++){
+    //(1)if(kd->vectores->vectors[k]->pos[0] < min_eje_x){
+      //(1)min_eje_x = kd->vectores->vectors[k]->pos[0];
+    //(1)}
+    //(1)if(kd->vectores->vectors[k]->pos[0] > max_eje_x){
+      //(1)max_eje_x = kd->vectores->vectors[k]->pos[0];
+    //(1)}
+    if(train->vectors[k]->pos[0] < min_eje_x){
+      min_eje_x = train->vectors[k]->pos[0];
+    }
+    if(train->vectors[k]->pos[0] > max_eje_x){
+      max_eje_x = train->vectors[k]->pos[0];
+    }
+  }
+  
+  kd -> max_x = max_eje_x;
+  kd -> min_x = min_eje_x;
+
+  // En Y
+  for(int k = 0; k < train->count; k++){
+    //(1)if(kd->vectores->vectors[k]->pos[1] < min_eje_y){
+      //(1)min_eje_y = kd->vectores->vectors[k]->pos[1];
+    //(1)}
+    //(1)if(kd->vectores->vectors[k]->pos[1] > max_eje_y){
+      //(1)max_eje_y = kd->vectores->vectors[k]->pos[1];
+    //(1)}
+
+    if(train->vectors[k]->pos[1] < min_eje_y){
+      min_eje_y = train->vectors[k]->pos[1];
+    }
+    if(train->vectors[k]->pos[1] > max_eje_y){
+      max_eje_y = train->vectors[k]->pos[1];
+    }
+  }
+  
+  kd -> max_y = max_eje_y;
+  kd -> min_y = min_eje_y;
+  
+
+  // Si kd -> contador_vect <= 5 llegamos a la hoja
+  if(train -> count <= 5){
+    // (-1) --------------------------------------------------------------------------
+    kd->vectores = malloc(sizeof(Data));
+    kd->vectores->vectors = malloc(sizeof(Vector*) * train -> count);
+    kd -> vectores -> vectors = train -> vectors;
+    kd -> vectores -> count = train -> count;
+    return kd;
+
+  }
+
+  // Cambiamos el eje a dividir
+  if(kd -> eje == 1){
+    kd -> eje = 0;
+    eje = 0;
+  }
+  else{
+    kd -> eje = 1;
+    eje = 1;
+  }
+
+  // Encuentro la mediana de los datos
+  double mediana = Mediana(train, eje);
+
+  // Creo 2 Datas para guardar los vectores de los hijos
+  Data* data_arriba_izq = malloc(sizeof(Data));
+  Data* data_abajo_der = malloc(sizeof(Data));
+
+  int ai_idx = 0;
+  int ad_idx = 0;
+
+  // Cuento cuantos elementos hay que ingresar a cada Data
+  for(int k = 0; k < train -> count; k++){
+    if(train -> vectors[k] -> pos[eje] <= mediana){
+      ai_idx = ai_idx + 1;
+    }
+    else{
+      ad_idx = ad_idx + 1;
+    }
+  }
+
+  data_arriba_izq -> vectors = malloc(sizeof(Vector*) * ai_idx);
+  data_abajo_der -> vectors = malloc(sizeof(Vector*) * ad_idx);
+
+  // Creo 2 listas de menores-iguales y mayores a la mediana
+  ai_idx = 0;
+  ad_idx = 0;
+
+  for(int k = 0; k < train -> count; k++){
+    if(train -> vectors[k] -> pos[eje] <= mediana){
+      data_arriba_izq -> vectors[ai_idx] = train -> vectors[k];
+      ai_idx = ai_idx + 1;
+    }
+    else{
+      data_abajo_der -> vectors[ad_idx] = train -> vectors[k];
+      ad_idx = ad_idx + 1;
+    }
+  }
+
+  // Actualizamos el count de los Data
+
+  data_arriba_izq -> count = ai_idx;
+  data_abajo_der -> count = ad_idx;
+
+  // Creamos los KDTrees hijos
+  kd -> arriba_izq = kd_init_aux(data_arriba_izq, kd -> eje);
+  kd -> abajo_der = kd_init_aux(data_abajo_der, kd -> eje);
+
+  return kd;
 }
 
 
@@ -122,58 +255,10 @@ Vector Mediana(Data* vectores, int eje){
 KDTree* kd_init(Data* train)
 {
   // Completa este metodo
-
-  // Creo una estructura KDTree
-  KDTree* kd = malloc(sizeof(KDTree));
-
-  // Agrego los vectores a kd
-  kd -> vectores -> vectors = train -> vectors;
-  kd -> vectores -> count = train -> count;
-
-  // Si kd -> contador_vect <= 5 llegamos a la hoja
-  if(&train -> count <= 5){
-    return kd;
-  }
-
-  // Cambiamos el eje a dividir
-  if(kd -> eje = 1){
-    kd -> eje = 0;
-  }
-  else{
-    kd -> eje = 1;
-  }
-
-  // Encuentro la mediana de los datos
-  int mediana = Mediana(train, eje);
-
-  // Creo 2 Datas para guardar los vectores de los hijos
-  Data* arriba_izq;
-  Data* abajo_der;
-  int ai_idx = 0;
-  int ad_idx = 0;
-
-
-  // Creo 2 listas de menores-iguales y mayores a la mediana
-  for(int k = 0; k < train -> count; k++){
-    if(train -> vectors[k] -> pos[eje] <= mediana){
-      arriba_izq -> vectors[ai_idx] = train -> vectors[k];
-      ai_idx++;
-    }
-    else{
-      kd_abajo_der -> vectors[ad_idx] = train -> vectors[k];
-      ad_idx++;
-    }
-  }
-
-  // Actualizamos el count de los Data
-  arriba_izq -> count = ai_idx;
-  abajo_der -> count = ad_idx;
-
-  // Creamos los KDTrees hijos
-  kd -> arriba_izq = kd_init(arriba_izq);
-  kd -> abajo_der = kd_init(abajo_der);
-
+  int eje = 1;
+  KDTree* kd = kd_init_aux(train, eje);
   return kd;
+  
 }
 
 /** Busca los vecinos cercanos y los guarda en neighbours */
@@ -245,9 +330,15 @@ void knn(Vector** neighbours, KDTree* kd, Data* train_data, int k, Vector* objec
 void kd_destroy(KDTree* kd)
 {
   // Completa este metodo
-  if(kd){
-    kd_destroy(arriba_izq);
-    kd_destroy(abajo_der);
-    free(kd);
+  if(kd->arriba_izq){
+    kd_destroy(kd->arriba_izq);
   }
+  if(kd->abajo_der){
+    kd_destroy(kd->abajo_der);
+  }
+  if(kd->vectores){
+    free(kd->vectores->vectors);
+    free(kd->vectores);
+  }
+  free(kd);
 }
