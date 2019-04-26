@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /** Retorna la key del objeto de la posicion dada */
-static int key(Heap* heap, int i)
+static double key(Heap* heap, int i)
 {
   return heap -> array[i] -> key;
 }
@@ -33,9 +33,10 @@ static void sift_up(Heap* heap, int pos)
   // Posicion del padre (mis hijos estan en la posicion 2n+1)
   int father = (pos - 1) / 2;
 
-  // Si el padre es mayor hago swap y sigo iterando
-  if (key(heap, father) > key(heap, pos))
+  // Si el padre es menor hago swap y sigo iterando
+  if (key(heap, father) < key(heap, pos))
   {
+    printf("%f es menor que %f, por lo que los cambiamos\n",key(heap, father), key(heap, pos));
     swap(heap, pos, father);
     sift_up(heap, father);
   }
@@ -52,21 +53,21 @@ static void sift_down(Heap* heap, int pos)
   if (heap -> count <= left) return;
 
   // Veo cual de los hijos es menor
-  int smaller;
-  if (heap -> count == right || key(heap, left) < key(heap, right))
+  int highter;
+  if (heap -> count == left || key(heap, left) < key(heap, right))
   {
-    smaller = left;
+    highter = right;
   }
   else
   {
-    smaller = right;
+    highter = left;
   }
 
-  // Si la key actual es mayor a la del hijo menor, hago swap y sigo bajando
-  if (key(heap, pos) > key(heap, smaller))
+  // Si la key actual es menor a la del hijo mayor, hago swap y sigo bajando
+  if (key(heap, pos) < key(heap, highter))
   {
-    swap(heap, pos, smaller);
-    sift_down(heap, smaller);
+    swap(heap, pos, highter);
+    sift_down(heap, highter);
   }
 }
 
@@ -128,6 +129,10 @@ Object* heap_pop(Heap* heap)
 /** Destruye el heap */
 void heap_destroy(Heap* heap)
 {
+  for(int k = 0; k < heap->count; k++){
+    free(heap->array[k]->value);
+    free(heap->array[k]);
+  }
   free(heap -> array);
   free(heap);
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "kdtree/kdtree.h"
+#include "heap/heap.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,13 +47,12 @@ int main(int argc, char *argv[])
 
   // PRINTS
   //Print_KDTree(kd);
+  //sleep(3);
 
   // Numero de correctos y de incorrectos
   int correct = 0;
   int incorrect = 0;
-
-  //
-
+  
   // Arreglo de vecinos mas cercanos
   Vector** neighbours = malloc(sizeof(Vector*) * k);
   // Itero por los vectores a clasificar

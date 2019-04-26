@@ -2,7 +2,7 @@
 #include "object.h"
 
 /** Inicializa el objeto */
-Object* obj_init(int key, int value)
+Object* obj_init(double key, Vector* value)
 {
   Object* obj = malloc(sizeof(Object));
   obj -> key = key;

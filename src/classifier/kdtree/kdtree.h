@@ -14,6 +14,7 @@ typedef struct kdtree
     double min_y;
     double max_x;
     double max_y;
+    double mediana_xy;
     Data* vectores;
 
 } KDTree;
