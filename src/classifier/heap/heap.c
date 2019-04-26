@@ -52,15 +52,15 @@ static void sift_down(Heap* heap, int pos)
   // Si estoy en una hoja termino
   if (heap -> count <= left) return;
 
-  // Veo cual de los hijos es menor
+  // Veo cual de los hijos es mayor
   int highter;
-  if (heap -> count == left || key(heap, left) < key(heap, right))
+  if (heap -> count == left || key(heap, left) > key(heap, right))
   {
-    highter = right;
+    highter = left;
   }
   else
   {
-    highter = left;
+    highter = right;
   }
 
   // Si la key actual es menor a la del hijo mayor, hago swap y sigo bajando
@@ -107,6 +107,9 @@ Object* heap_pop(Heap* heap)
   Object* obj = heap -> array[0];
   // Disminuyo el contador de elementos en 1
   heap -> count -= 1;
+
+  printf("\t Estoy dentro del Heap pop\n");
+  printf("\t heap actual(%d elementos) : [%f, %f, %f, %f]\n", heap->count,heap->array[0],heap->array[1],heap->array[2],heap->array[3]);
 
   // Si quedan elementos, remplazo la cabeza por el ultimo elemento
   if (heap -> count > 0)
