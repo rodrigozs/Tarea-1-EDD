@@ -97,23 +97,12 @@ void Print_KDTree(KDTree* kd){
   printf("eje: %d\n", kd->eje);
   printf("min_x: %f - max_x: %f\n",kd->min_x, kd->max_x);
   printf("min_y: %f - max_y: %f\n",kd->min_y, kd->max_y);
-
-  if(kd->vectores){
-    printf("[");
-    for(int k=0; k < kd->vectores->count; k++){
-      printf("(%f, %f), ",kd->vectores->vectors[k]->pos[0], kd->vectores->vectors[k]->pos[1]);
-    }
-    printf("]\n");
-    printf("\n");
-  }
-  
+ 
   if(kd->arriba_izq){
-    printf("\nRama Izquierda\n");
     Print_KDTree(kd->arriba_izq);
   }
 
   if(kd->abajo_der){
-    printf("\nRama Derecha\n");
     Print_KDTree(kd->abajo_der);
   }
 }
@@ -143,12 +132,6 @@ KDTree* kd_init_aux(Data* train, int eje){
 
   // En X
   for(int k = 0; k < train->count; k++){
-    //(1)if(kd->vectores->vectors[k]->pos[0] < min_eje_x){
-      //(1)min_eje_x = kd->vectores->vectors[k]->pos[0];
-    //(1)}
-    //(1)if(kd->vectores->vectors[k]->pos[0] > max_eje_x){
-      //(1)max_eje_x = kd->vectores->vectors[k]->pos[0];
-    //(1)}
     if(train->vectors[k]->pos[0] < min_eje_x){
       min_eje_x = train->vectors[k]->pos[0];
     }
@@ -162,13 +145,6 @@ KDTree* kd_init_aux(Data* train, int eje){
 
   // En Y
   for(int k = 0; k < train->count; k++){
-    //(1)if(kd->vectores->vectors[k]->pos[1] < min_eje_y){
-      //(1)min_eje_y = kd->vectores->vectors[k]->pos[1];
-    //(1)}
-    //(1)if(kd->vectores->vectors[k]->pos[1] > max_eje_y){
-      //(1)max_eje_y = kd->vectores->vectors[k]->pos[1];
-    //(1)}
-
     if(train->vectors[k]->pos[1] < min_eje_y){
       min_eje_y = train->vectors[k]->pos[1];
     }
@@ -264,74 +240,33 @@ KDTree* kd_init(Data* train)
 int SearchKDTree(KDTree* kd, Vector* vector, double* r, Heap* heap, int eje){
 
   if(!collision(vector->pos[0], vector->pos[1], *r, kd->min_x, kd->max_x, kd->min_y, kd->max_y)){
-    printf("No hay colision \n\n");
     return 1;
   }
   
   //Si estamos en una hoja
   if(!kd->arriba_izq){
-    printf("\n\nEstamos en una hoja \n");
-    printf("Vector: (%f, %f)\n\n", vector->pos[0], vector->pos[1]);
-    printf("Datos de la hoja:\n");
-    printf("--> count vectores %d\n", kd->vectores->count);
-    
-    printf("--> [");
-    for(int q=0; q < kd->vectores->count; q++){
-      printf("(%f, %f), ", kd->vectores->vectors[q]->pos[0], kd->vectores->vectors[q]->pos[1]);
-    }
-    printf("]\n\n");
-
     // Itero sobre vectores de la particion
     for(int k=0; k < kd->vectores->count; k++){
 
       // Si hay espacio disponible en el heap
       if(heap->count < heap->size){
-        printf("Hay espacio en mi heap Antes: (%d / %d) \n", heap->count, heap->size);
-
         Vector* vec_vector_heap = malloc(sizeof(Vector));
         vec_vector_heap = kd->vectores->vectors[k];
 
         Object* obj_vector = obj_init(distance(vector, kd->vectores->vectors[k]), vec_vector_heap);
 
         heap_insert(heap, obj_vector);
-
-        printf("Hay espacio en mi heap Despues: (%d / %d) \n", heap->count, heap->size);
-
-        printf("heap: [");
-        for(int c=0; c < heap->count; c++){
-          printf("(%f, %f), ", heap->array[c]->value->pos[0], heap->array[c]->value->pos[1]);
-        }
-        printf("]\n");
-
-        printf("distancias: [");
-        for(int c=0; c < heap->count; c++){
-          printf("%f, ", heap->array[c]->key);
-        }
-        printf("]\n\n");
         
       }
 
       // Si mi heap esta lleno
       else if(heap->count == heap->size){
-        printf("Mi heap esta lleno");
         for(int i=0; i < heap->count; i++){
           if(distance(kd->vectores->vectors[k], vector) < distance(heap->array[i]->value, vector)){
 
             Object* obj = heap_pop(heap);
             free(obj->value);
             free(obj);
-
-            printf("heap: [");
-            for(int c=0; c < heap->count; c++){
-	      printf("(%f, %f), ", heap->array[c]->value->pos[0], heap->array[c]->value->pos[1]);
-	    }
-	    printf("]\n");
-
-	    printf("distancias: [");
-	    for(int c=0; c < heap->count; c++){
-	      printf("%f, ", distance(vector, heap->array[c]->value));
-	    }
-	    printf("]\n\n");
 
             Object* obj_vector = malloc(sizeof(Object));
             obj_vector->key = heap->count;
@@ -358,16 +293,12 @@ int SearchKDTree(KDTree* kd, Vector* vector, double* r, Heap* heap, int eje){
 
   else{
     if(vector->pos[kd->eje] < kd->mediana_xy){
-      printf("%f < %f -> nos vamos por hijo arriba_izq\n",vector->pos[kd->eje], kd->mediana_xy);
       SearchKDTree(kd->arriba_izq, vector, r, heap, kd->eje);
-      printf("Salgo de arriba_izq\n");
       SearchKDTree(kd->abajo_der, vector, r, heap, kd->eje);
     }
 
     else{
-      printf("%f > %f -> nos vamos por hijo abajo_der\n",vector->pos[kd->eje], kd->mediana_xy);
       SearchKDTree(kd->abajo_der, vector, r, heap, kd->eje);
-      printf("Salgo de arriba_izq\n");
       SearchKDTree(kd->arriba_izq, vector, r, heap, kd->eje);
     }
   }
@@ -401,13 +332,16 @@ void knn(Vector** neighbours, KDTree* kd, Data* train_data, int k, Vector* objec
 
   // Actualizo el heap con vecinos mas cercanos a objective
   SearchKDTree(kd, objective, r, heap, kd->eje);
-  printf("Salgo de SearchKDTree");
+  printf("Salgo de SearchKDTree\n\n");
+  sleep(0.5);
 
+  printf("neighbours: [");
   // Actualizo neighbours con los vecinos mas cercanos encontrados
-  for(int i = 0; i < heap->size; i++){
-    Object* obj = heap_pop(heap);
-    neighbours[i] = obj->value;
+  for(int i = 0; i < heap->count; i++){
+    neighbours[i] = heap->array[i]->value;
+    printf("(%f , %f)", neighbours[i]->pos[0], neighbours[i]->pos[1]);
   }
+  
   
   // Destruimos heap
   heap_destroy(heap);

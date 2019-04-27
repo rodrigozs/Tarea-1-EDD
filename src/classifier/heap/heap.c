@@ -36,7 +36,6 @@ static void sift_up(Heap* heap, int pos)
   // Si el padre es menor hago swap y sigo iterando
   if (key(heap, father) < key(heap, pos))
   {
-    printf("%f es menor que %f, por lo que los cambiamos\n",key(heap, father), key(heap, pos));
     swap(heap, pos, father);
     sift_up(heap, father);
   }
@@ -62,6 +61,7 @@ static void sift_down(Heap* heap, int pos)
   {
     highter = right;
   }
+  
 
   // Si la key actual es menor a la del hijo mayor, hago swap y sigo bajando
   if (key(heap, pos) < key(heap, highter))
@@ -108,14 +108,12 @@ Object* heap_pop(Heap* heap)
   // Disminuyo el contador de elementos en 1
   heap -> count -= 1;
 
-  printf("\t Estoy dentro del Heap pop\n");
-  printf("\t heap actual(%d elementos) : [%f, %f, %f, %f]\n", heap->count,heap->array[0],heap->array[1],heap->array[2],heap->array[3]);
-
   // Si quedan elementos, remplazo la cabeza por el ultimo elemento
   if (heap -> count > 0)
   {
     heap -> array[0] = heap -> array[heap -> count];
     heap -> array[heap -> count] = NULL;
+
     // Restauro la propiedad de heap
     sift_down(heap, 0);
   }
@@ -124,6 +122,7 @@ Object* heap_pop(Heap* heap)
     // Si no quedan elementos, seteo la cabeza en NULL
     heap -> array[0] = NULL;
   }
+
 
   // Retorno el elemento que elimine
   return obj;
